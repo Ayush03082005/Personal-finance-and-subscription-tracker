@@ -134,10 +134,9 @@ const getFinancialSummary = async (req, res) => {
         }
       });
 
-      // If past month has no data, synthesize gentle historical representation relative to current
-      if (i > 0 && mInc === 0 && mExp === 0) {
-        mInc = Math.round(monthlyIncome * (0.85 + (5 - i) * 0.03));
-        mExp = Math.round(monthlyExpense * (0.88 + (5 - i) * 0.02));
+      // Only show actual data, no synthesized history for empty months
+      if (mInc === 0 && mExp === 0) {
+        // Leave as zero — no fake data
       }
 
       monthlyTrends.push({

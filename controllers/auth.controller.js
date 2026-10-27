@@ -30,9 +30,6 @@ const register = async (req, res) => {
       currency: currency || "$",
     });
 
-    // Automatically seed friendly starter data so new user has an immediate interactive experience
-    await seedSampleDataForUser(user._id);
-
     const token = generateToken(res, user._id);
 
     res.status(201).json({
