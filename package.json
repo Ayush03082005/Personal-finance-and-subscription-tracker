@@ -1,0 +1,51 @@
+{
+  "name": "smart-finance-subscription-tracker",
+  "version": "1.0.0",
+  "description": "Smart Personal Finance & Subscription Tracker built with MongoDB, Express, React, and Node.js",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "server": "nodemon index.js",
+    "client": "vite",
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,magenta\" \"nodemon index.js\" \"vite\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "personal-finance",
+    "subscription-tracker",
+    "mongodb",
+    "express",
+    "react",
+    "budgeting"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.20.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.46.0",
+    "mongodb-memory-server": "^11.2.0",
+    "mongoose": "^9.9.4",
+    "nodemon": "^3.1.14",
+    "razorpay": "^2.9.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
+    "concurrently": "^10.0.5",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.0"
+  }
+}
