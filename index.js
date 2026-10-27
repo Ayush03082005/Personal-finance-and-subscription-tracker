@@ -120,9 +120,9 @@ async function startServer() {
   let mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/smart_finance";
 
   try {
-    console.log("🔄  Connecting to MongoDB...");
-    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 3000 });
-    console.log("✅  Connected to primary MongoDB");
+    console.log("🔄  Connecting to MongoDB Atlas Cloud Server...");
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
+    console.log("✅  Connected to MongoDB Atlas Cloud Server (cluster1.ybeht3t.mongodb.net)");
   } catch (err) {
     console.log(`⚠️  Could not connect to external MongoDB (${err.message}). Starting in-memory MongoDB...`);
     const memoryServer = await MongoMemoryServer.create();
