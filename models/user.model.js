@@ -28,17 +28,17 @@ const userSchema = new mongoose.Schema(
     },
     monthlyIncomeTarget: {
       type: Number,
-      default: 5000,
+      default: 0,
       min: 0,
     },
     monthlyBudgetLimit: {
       type: Number,
-      default: 3500,
+      default: 0,
       min: 0,
     },
     savingsGoalTarget: {
       type: Number,
-      default: 1500,
+      default: 0,
       min: 0,
     },
     alertPreferences: {
