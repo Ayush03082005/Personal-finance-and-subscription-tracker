@@ -24,6 +24,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
+  "https://personal-finance-tracker-lovat-one-98.vercel.app",
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
