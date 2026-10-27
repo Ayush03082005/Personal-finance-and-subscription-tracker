@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 const fs = require("fs");
 const { MongoMemoryServer } = require("mongodb-memory-server");
+const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const subscriptionRoutes = require("./routes/subscription.routes");
@@ -16,8 +17,6 @@ const demoRoutes = require("./routes/demo.routes");
 
 const User = require("./models/user.model");
 const { seedSampleDataForUser } = require("./controllers/demo.controller");
-
-const cors = require("cors");
 
 const app = express();
 
@@ -42,6 +41,56 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// ── Database Connection Cache (For Vercel Serverless) ───────────────────────
+let isConnected = false;
+
+async function seedDefaultUserIfEmpty() {
+  try {
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log("🌱  Seeding initial Demo User with sample finance data...");
+      const demoUser = await User.create({
+        name: "Alex Morgan",
+        email: "demo@smartfinance.io",
+        password: "DemoUserSecurePass2026!",
+        currency: "$",
+        monthlyIncomeTarget: 6800,
+        monthlyBudgetLimit: 3600,
+        savingsGoalTarget: 2000,
+      });
+      await seedSampleDataForUser(demoUser._id);
+      console.log("✅  Seeded Demo User (demo@smartfinance.io).");
+    }
+  } catch (err) {
+    console.warn("⚠️  Could not seed initial user:", err.message);
+  }
+}
+
+async function connectToDatabase() {
+  if (isConnected || mongoose.connection.readyState === 1) {
+    isConnected = true;
+    return;
+  }
+  const mongoUri =
+    process.env.MONGO_URI || "mongodb://127.0.0.1:27017/smart_finance";
+  try {
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
+    isConnected = true;
+    console.log("✅  Connected to MongoDB Atlas Cloud Server");
+    await seedDefaultUserIfEmpty();
+  } catch (err) {
+    console.error("❌  Database connection error:", err.message);
+  }
+}
+
+// Ensure DB is connected for API requests
+app.use(async (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/health")) {
+    await connectToDatabase();
+  }
+  next();
+});
 
 // ── Health Check Routes ─────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
@@ -69,11 +118,11 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/demo", demoRoutes);
 
-// ── Static Frontend Serving & SPA Fallback ──────────────────────────────────
+// ── Static Frontend Serving & SPA Fallback (for non-Vercel environments) ────
 const distPath = path.join(__dirname, "dist");
 const hasDist = fs.existsSync(distPath);
 
-if (hasDist) {
+if (hasDist && !process.env.VERCEL) {
   app.use(express.static(distPath));
   app.use((req, res, next) => {
     if (req.method === "GET" && !req.path.startsWith("/api")) {
@@ -81,16 +130,9 @@ if (hasDist) {
     }
     next();
   });
-} else {
-  app.get("/", (req, res) => {
-    res.json({
-      message: "Smart Personal Finance & Subscription Tracker API is online 🚀",
-      docs: "/api/health",
-    });
-  });
 }
 
-// 404 handler for API routes (Express 5 safe)
+// 404 handler for API routes
 app.use((req, res, next) => {
   if (req.path.startsWith("/api")) {
     return res.status(404).json({ success: false, message: "API route not found" });
@@ -98,54 +140,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── Database Connection & Server Startup ────────────────────────────────────
+// ── Standalone Server Startup (Local / Dedicated Server) ────────────────────
 const PORT = process.env.PORT || 3000;
 
-async function seedDefaultUserIfEmpty() {
-  try {
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log("🌱  Seeding initial Demo User with sample finance data...");
-      const demoUser = await User.create({
-        name: "Alex Morgan",
-        email: "demo@smartfinance.io",
-        password: "DemoUserSecurePass2026!",
-        currency: "$",
-        monthlyIncomeTarget: 6800,
-        monthlyBudgetLimit: 3600,
-        savingsGoalTarget: 2000,
-      });
-      await seedSampleDataForUser(demoUser._id);
-      console.log("✅  Seeded Demo User (demo@smartfinance.io).");
-    }
-  } catch (err) {
-    console.warn("⚠️  Could not seed initial user:", err.message);
-  }
-}
-
 async function startServer() {
-  let mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/smart_finance";
-
-  try {
-    console.log("🔄  Connecting to MongoDB Atlas Cloud Server...");
-    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
-    console.log("✅  Connected to MongoDB Atlas Cloud Server (cluster1.ybeht3t.mongodb.net)");
-  } catch (err) {
-    console.log(`⚠️  Could not connect to external MongoDB (${err.message}). Starting in-memory MongoDB...`);
-    const memoryServer = await MongoMemoryServer.create();
-    mongoUri = memoryServer.getUri();
-    await mongoose.connect(mongoUri);
-    console.log("✅  Connected to in-memory MongoDB");
-  }
-
-  await seedDefaultUserIfEmpty();
-
+  await connectToDatabase();
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀  Smart Finance & Subscription Tracker running on http://127.0.0.1:${PORT}`);
   });
 }
 
-startServer().catch((err) => {
-  console.error("❌  Startup error:", err.message);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error("❌  Startup error:", err.message);
+  });
+}
+
+module.exports = app;

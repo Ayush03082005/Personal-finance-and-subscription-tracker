@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const rawApiUrl = import.meta.env.VITE_API_URL || "";
+const rawApiUrl = import.meta.env.VITE_API_URL || "https://personal-finance-and-subscription-tracker.onrender.com";
 const baseURL = rawApiUrl ? `${rawApiUrl.replace(/\/+$/, "")}/api` : "/api";
 
 const API = axios.create({
