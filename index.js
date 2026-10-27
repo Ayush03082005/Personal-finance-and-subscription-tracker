@@ -61,6 +61,13 @@ app.get("/api/health", (req, res) => {
 });
 
 // ── API Routes ──────────────────────────────────────────────────────────────
+app.use("/api/auth", authRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/budgets", budgetRoutes);
+app.use("/api/goals", goalRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/demo", demoRoutes);
 
 // ── Static Frontend Serving & SPA Fallback ──────────────────────────────────
 const distPath = path.join(__dirname, "dist");
